@@ -25,15 +25,18 @@ export default function IssueTicket() {
     ? selectedVehicle.baseAmount + (night ? nightSurcharge : 0)
     : 0;
 
-  // My own sales so far today (live).
+  // Today's totals — attendants see their own, managers see all staff combined.
   const myToday = useMemo(() => {
     const todayKey = lagosDateStr();
-    const mine = tickets.filter((t) => t.issuedBy === user.id && dayKeyOf(t.issuedAt) === todayKey);
+    const mine = tickets.filter(
+      (t) => dayKeyOf(t.issuedAt) === todayKey && (user.role === 'admin' || t.issuedBy === user.id)
+    );
     return {
       count: mine.length,
       revenue: mine.reduce((s, t) => s + t.totalAmount, 0),
+      staff: new Set(mine.map((t) => t.issuedBy)).size,
     };
-  }, [tickets, user.id]);
+  }, [tickets, user.id, user.role]);
 
   const handleIssue = () => {
     if (!selectedVehicle) return;
@@ -60,7 +63,9 @@ export default function IssueTicket() {
           <div className="leading-tight">
             <div className="text-sm font-extrabold">{user.fullName}</div>
             <div className="text-[11px] font-medium text-white/80">
-              Today: {num(myToday.count)} ticket{myToday.count === 1 ? '' : 's'} · {money(myToday.revenue)}
+              {user.role === 'admin'
+                ? `All staff today: ${num(myToday.count)} ticket${myToday.count === 1 ? '' : 's'} · ${money(myToday.revenue)} · ${myToday.staff} staff`
+                : `Today: ${num(myToday.count)} ticket${myToday.count === 1 ? '' : 's'} · ${money(myToday.revenue)}`}
             </div>
           </div>
         </div>

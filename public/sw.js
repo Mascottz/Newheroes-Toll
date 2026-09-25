@@ -10,7 +10,7 @@
  *
  * NOTE: bump CACHE_VERSION whenever you ship a breaking shell change.
  */
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const SHELL_CACHE = `nh-toll-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `nh-toll-runtime-${CACHE_VERSION}`;
 
@@ -18,9 +18,10 @@ const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/icons/logo.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/apple-touch-icon.png',
+  '/brand/logo.png',
 ];
 
 self.addEventListener('install', (event) => {

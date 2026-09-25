@@ -15,32 +15,54 @@ import VehicleIcon from '../components/VehicleIcon.jsx';
 import { EmptyState, StatCard, SyncDot } from '../components/ui.jsx';
 import { downloadCSV } from '../lib/csv.js';
 
+/**
+ * Sales for a chosen day.
+ *  • Attendants see only their own sales ("My Sales").
+ *  • Managers see every ticket issued by all enrolled staff ("All Sales"),
+ *    with an optional filter for a single staff member.
+ */
 export default function MySales() {
   const { user } = useAuth();
-  const { tickets, pendingCount } = useTickets();
+  const { tickets, pendingCount, profiles } = useTickets();
   const [dateStr, setDateStr] = useState(() => lagosDateStr());
+  const [staffId, setStaffId] = useState('all'); // admin only
   const todayStr = lagosDateStr();
+  const isAdmin = user.role === 'admin';
 
   useEffect(() => {
-    document.title = 'My Sales — NEWHEROES Toll Gate';
-  }, []);
+    document.title = `${isAdmin ? 'All Sales' : 'My Sales'} — NEWHEROES Toll Gate`;
+  }, [isAdmin]);
+
+  const nameOf = (id) => profiles.find((p) => p.id === id)?.fullName || null;
+
+  const ownedBy = (t) => {
+    if (!isAdmin) return t.issuedBy === user.id;
+    if (staffId === 'all') return true;
+    return t.issuedBy === staffId;
+  };
 
   const dayTickets = useMemo(
     () =>
       tickets
-        .filter((t) => t.issuedBy === user.id && dayKeyOf(t.issuedAt) === dateStr)
+        .filter((t) => dayKeyOf(t.issuedAt) === dateStr && ownedBy(t))
         .sort((a, b) => Date.parse(b.issuedAt) - Date.parse(a.issuedAt)),
-    [tickets, user.id, dateStr]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tickets, user.id, dateStr, staffId, isAdmin]
   );
 
   const monthTickets = useMemo(() => {
     const from = +lagosMonthStart();
-    return tickets.filter((t) => t.issuedBy === user.id && Date.parse(t.issuedAt) >= from);
-  }, [tickets, user.id]);
+    return tickets.filter((t) => Date.parse(t.issuedAt) >= from && ownedBy(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tickets, user.id, staffId, isAdmin]);
 
   const revenue = dayTickets.reduce((s, t) => s + t.totalAmount, 0);
   const monthRevenue = monthTickets.reduce((s, t) => s + t.totalAmount, 0);
   const unsynced = dayTickets.filter((t) => !t.synced).length;
+  const staffToday = useMemo(
+    () => new Set(dayTickets.map((t) => t.issuedBy)).size,
+    [dayTickets]
+  );
 
   const shiftDay = (delta) => {
     const d = new Date(`${dateStr}T12:00:00Z`);
@@ -51,11 +73,15 @@ export default function MySales() {
   };
 
   const exportCsv = () => {
+    const header = isAdmin
+      ? ['Ticket No', 'Vehicle', 'Staff', 'Night Parking', 'Base (NGN)', 'Surcharge (NGN)', 'Total (NGN)', 'Time In', 'Date', 'Sent']
+      : ['Ticket No', 'Vehicle', 'Night Parking', 'Base (NGN)', 'Surcharge (NGN)', 'Total (NGN)', 'Time In', 'Date', 'Sent'];
     const rows = [
-      ['Ticket No', 'Vehicle', 'Night Parking', 'Base (NGN)', 'Surcharge (NGN)', 'Total (NGN)', 'Time In', 'Date', 'Sent'],
+      header,
       ...dayTickets.map((t) => [
         t.ticketNo,
         t.vehicleLabel,
+        ...(isAdmin ? [t.issuedByName || nameOf(t.issuedBy) || '—'] : []),
         t.nightParking ? 'Yes' : 'No',
         t.baseAmount,
         t.surcharge,
@@ -65,14 +91,16 @@ export default function MySales() {
         t.synced ? 'Yes' : 'Not yet',
       ]),
     ];
-    downloadCSV(`my-sales-${dateStr}.csv`, rows);
+    downloadCSV(`${isAdmin ? 'all-sales' : 'my-sales'}-${dateStr}.csv`, rows);
   };
 
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-lg font-extrabold text-slate-800">My Sales</h1>
-        <p className="text-xs font-semibold text-slate-400">Your personal daily records</p>
+        <h1 className="text-lg font-extrabold text-slate-800">{isAdmin ? 'All Sales' : 'My Sales'}</h1>
+        <p className="text-xs font-semibold text-slate-400">
+          {isAdmin ? 'Every ticket issued by all your staff' : 'Your personal daily records'}
+        </p>
       </div>
 
       {/* Date navigation */}
@@ -117,14 +145,42 @@ export default function MySales() {
         </button>
       </div>
 
+      {/* Staff filter (managers only) */}
+      {isAdmin && (
+        <div className="relative">
+          <Icon name="users" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <select
+            value={staffId}
+            onChange={(e) => setStaffId(e.target.value)}
+            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-8 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
+            aria-label="Filter by staff"
+          >
+            <option value="all">All staff</option>
+            {profiles.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.fullName}
+                {!p.isActive ? ' (disabled)' : ''}
+              </option>
+            ))}
+          </select>
+          <Icon name="chevronDown" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        </div>
+      )}
+
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard
           icon={<Icon name="ticket" className="h-5 w-5" />}
           tone="pink"
-          label="Tickets"
+          label={isAdmin && staffId === 'all' ? 'All Tickets' : 'Tickets'}
           value={num(dayTickets.length)}
-          sub={unsynced ? `${unsynced} not sent yet` : fmtDayLongLabel(dateStr)}
+          sub={
+            isAdmin && staffId === 'all'
+              ? `${staffToday} staff member${staffToday === 1 ? '' : 's'} sold today`
+              : unsynced
+                ? `${unsynced} not sent yet`
+                : fmtDayLongLabel(dateStr)
+          }
         />
         <StatCard
           icon={<Icon name="banknote" className="h-5 w-5" />}
@@ -155,7 +211,11 @@ export default function MySales() {
             <EmptyState
               icon={<Icon name="receipt" className="h-10 w-10" />}
               title="No tickets on this day"
-              sub="Tickets you issue will appear here with a full breakdown."
+              sub={
+                isAdmin
+                  ? 'Tickets issued by your staff will appear here with a full breakdown.'
+                  : 'Tickets you issue will appear here with a full breakdown.'
+              }
             />
           </div>
         ) : (
@@ -177,6 +237,9 @@ export default function MySales() {
                   <div className="tabular mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-slate-400">
                     <SyncDot synced={t.synced} />
                     {t.ticketNo} · {fmtTime(t.issuedAt)}
+                    {isAdmin && (
+                      <span className="truncate">· {t.issuedByName || nameOf(t.issuedBy) || 'Unknown staff'}</span>
+                    )}
                   </div>
                 </div>
                 <span className="tabular shrink-0 text-base font-extrabold text-slate-800">

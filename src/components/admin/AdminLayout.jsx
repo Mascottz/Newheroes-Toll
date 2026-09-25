@@ -27,7 +27,7 @@ const NAV_GROUPS = [
     group: 'Operations',
     items: [
       { to: '/', label: 'Issue Tickets', icon: 'ticket' },
-      { to: '/my-sales', label: 'My Sales', icon: 'receipt' },
+      { to: '/my-sales', label: 'All Sales', icon: 'receipt' },
     ],
   },
 ];

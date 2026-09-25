@@ -70,9 +70,11 @@ export function Receipt({ ticket }) {
       <div className="px-5 pb-5 pt-3 text-center">
         {/* Branding */}
         <div className="text-[15px] font-extrabold tracking-[0.18em]">NEWHEROES GROUP</div>
-        <div className="mx-auto mt-1 w-fit">
-          <LogoInline />
-        </div>
+        <img
+          src="/brand/logo.png"
+          alt="NEWHEROES GROUP logo"
+          className="mx-auto mt-1.5 h-16 w-16 rounded-xl object-cover ring-1 ring-pink-200"
+        />
         <div className="mt-1 text-[17px] font-extrabold leading-tight tracking-wide">{ORG.market}</div>
         <div className="mt-0.5 text-[11px] font-bold leading-snug tracking-wide">{ORG.address}</div>
 
@@ -128,38 +130,6 @@ export function Receipt({ ticket }) {
 
       <ZigZag flip />
     </div>
-  );
-}
-
-/* Small inline version of the badge for the receipt header. */
-function LogoInline() {
-  return (
-    <svg width="54" height="54" viewBox="0 0 120 120" aria-hidden="true" className="mx-auto">
-      <defs>
-        <pattern id="rcpt-d" width="12" height="12" patternUnits="userSpaceOnUse">
-          <rect width="12" height="12" fill="#FDF2F8" />
-          <path d="M6 0 12 6 6 12 0 6Z" fill="#FDE8F2" stroke="#F472B6" strokeWidth="1" />
-        </pattern>
-      </defs>
-      <circle cx="60" cy="60" r="57" fill="#fff" stroke="#C8102E" strokeWidth="5" />
-      <circle cx="60" cy="60" r="48" fill="url(#rcpt-d)" stroke="#C8102E" strokeWidth="2" />
-      <circle cx="60" cy="60" r="33" fill="#fff" stroke="#C8102E" strokeWidth="2" />
-      <g fill="#C8102E">
-        {[
-          [60, 58, 1.18],
-          [33, 42, 0.62],
-          [87, 42, 0.62],
-          [39, 79, 0.62],
-          [81, 79, 0.62],
-        ].map(([x, y, s], i) => (
-          <path
-            key={i}
-            transform={`translate(${x} ${y}) scale(${s}) translate(-12 -12)`}
-            d="M12 2l2.95 6.05 6.65.93-4.85 4.6 1.18 6.6L12 16.9l-5.93 3.28 1.18-6.6L2.4 8.98l6.65-.93L12 2z"
-          />
-        ))}
-      </g>
-    </svg>
   );
 }
 

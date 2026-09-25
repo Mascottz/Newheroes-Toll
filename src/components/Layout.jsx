@@ -9,7 +9,7 @@ export default function Layout() {
 
   const navItems = [
     { to: '/', label: 'Issue', icon: 'ticket', end: true },
-    { to: '/my-sales', label: 'My Sales', icon: 'receipt' },
+    { to: '/my-sales', label: user.role === 'admin' ? 'All Sales' : 'My Sales', icon: 'receipt' },
     ...(user.role === 'admin'
       ? [{ to: '/admin', label: 'Analytics', icon: 'chart' }]
       : []),
