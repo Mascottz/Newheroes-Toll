@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --notch-bg: #f8fafc; /* matches the modal card behind the receipt paper */
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-100 text-slate-800 antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* ---------- utilities ---------- */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+}
+.pt-safe {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native date input should match our inputs */
+input[type='date'] {
+  min-height: 2.75rem;
+}
+
+/* ---------- receipt paper ---------- */
+.receipt-paper {
+  color: #c8102e;
+  background: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  font-family: 'Courier New', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.receipt-paper .r-dashed {
+  border-top: 2px dashed #f9a8d4;
+}
+
+/* ---------- printing ---------- */
+@media print {
+  @page {
+    size: auto;
+    margin: 8mm;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  /* Hide the whole app; show only the open print modal (portal on body). */
+  body.has-print-target > *:not(.print-layer) {
+    display: none !important;
+  }
+
+  body.has-print-target .print-layer {
+    position: static !important;
+    overflow: visible !important;
+    background: #fff !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  body.has-print-target .no-print {
+    display: none !important;
+  }
+
+  body.has-print-target .print-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  body.has-print-target .receipt-paper {
+    max-width: 86mm !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
