@@ -13,6 +13,7 @@ import { downloadCSV } from '../../lib/csv.js';
 import Icon from '../../components/Icon.jsx';
 import { ConfirmDialog, Field, Modal, Spinner, StatCard, inputCls } from '../../components/ui.jsx';
 import { cx } from '../../lib/util.js';
+import friendlyError from '../../lib/friendlyError.js';
 
 export default function AdminExpenses() {
   const { user } = useAuth();
@@ -51,7 +52,7 @@ export default function AdminExpenses() {
     } catch (e) {
       setItems([]);
       setNoticeTone('err');
-      setNotice(`Could not load expenses: ${e.message}`);
+      setNotice(friendlyError(e, 'We could not load the expenses. Please try again.'));
     } finally {
       setLoading(false);
     }

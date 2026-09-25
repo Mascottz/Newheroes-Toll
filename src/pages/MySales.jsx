@@ -52,7 +52,7 @@ export default function MySales() {
 
   const exportCsv = () => {
     const rows = [
-      ['Ticket No', 'Vehicle', 'Night Parking', 'Base (NGN)', 'Surcharge (NGN)', 'Total (NGN)', 'Time In', 'Date', 'Synced'],
+      ['Ticket No', 'Vehicle', 'Night Parking', 'Base (NGN)', 'Surcharge (NGN)', 'Total (NGN)', 'Time In', 'Date', 'Sent'],
       ...dayTickets.map((t) => [
         t.ticketNo,
         t.vehicleLabel,
@@ -62,7 +62,7 @@ export default function MySales() {
         t.totalAmount,
         fmtTime(t.issuedAt),
         dateStr,
-        t.synced ? 'Yes' : 'Pending',
+        t.synced ? 'Yes' : 'Not yet',
       ]),
     ];
     downloadCSV(`my-sales-${dateStr}.csv`, rows);
@@ -124,7 +124,7 @@ export default function MySales() {
           tone="pink"
           label="Tickets"
           value={num(dayTickets.length)}
-          sub={unsynced ? `${unsynced} waiting to sync` : fmtDayLongLabel(dateStr)}
+          sub={unsynced ? `${unsynced} not sent yet` : fmtDayLongLabel(dateStr)}
         />
         <StatCard
           icon={<Icon name="banknote" className="h-5 w-5" />}
@@ -190,7 +190,7 @@ export default function MySales() {
 
       {pendingCount > 0 && (
         <p className="flex items-center justify-center gap-1.5 text-center text-[11px] font-semibold text-amber-600">
-          <Icon name="clock" className="h-3.5 w-3.5" /> {pendingCount} ticket(s) will upload
+          <Icon name="clock" className="h-3.5 w-3.5" /> {pendingCount} ticket(s) will be sent
           automatically when you're back online
         </p>
       )}

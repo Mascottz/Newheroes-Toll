@@ -6,6 +6,7 @@ import { authMode, getDemoAccounts } from '../lib/authClient.js';
 import { ORG } from '../lib/constants.js';
 import { cx } from '../lib/util.js';
 import { canInstall, isIOS, isStandalone, onInstallAvailability, promptInstall } from '../lib/installPrompt.js';
+import friendlyError from '../lib/friendlyError.js';
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -30,7 +31,7 @@ export default function Login() {
       await signIn(email, password);
       // navigation happens via auth state
     } catch (err) {
-      setError(err.message || 'Sign in failed');
+      setError(friendlyError(err, 'Sign in failed. Please try again.'));
     } finally {
       setBusy(false);
     }
@@ -46,7 +47,7 @@ export default function Login() {
         acc.email === 'manager@newheroes.ng' ? 'manager123' : 'staff123';
       await signIn(acc.email, pw);
     } catch (err) {
-      setError(err.message);
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -162,8 +163,8 @@ export default function Login() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-amber-700/80">
-                Passwords: <b>manager123</b> / <b>staff123</b>. Connect Supabase (see README) for
-                production accounts.
+                Passwords: <b>manager123</b> / <b>staff123</b>. This is a demo — records stay
+                on this device until the app is connected to your online service.
               </p>
             </div>
           ) : null}

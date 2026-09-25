@@ -10,6 +10,7 @@ import { authMode, getProfilesCache } from './authClient.js';
 import { ensureDemoExpenses } from './demoData.js';
 import { EXPENSES_KEY } from './keys.js';
 import { uuid } from './util.js';
+import friendlyError from './friendlyError.js';
 
 let localExpenses = (() => {
   try {
@@ -95,7 +96,7 @@ export async function listExpenses(limit = 1000) {
       .order('incurred_at', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(limit);
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(friendlyError(error));
     return (data || []).map(mapRow);
   }
   return [...localExpenses].sort((a, b) => (a.incurredAt < b.incurredAt ? 1 : -1));
@@ -122,7 +123,7 @@ export async function addExpense({ description, category, amount, incurredAt, us
       })
       .select()
       .single();
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(friendlyError(error));
     emit();
     return mapRow(data);
   }
@@ -146,7 +147,7 @@ export async function addExpense({ description, category, amount, incurredAt, us
 export async function deleteExpense(id) {
   if (authMode === 'supabase' && isSupabaseConfigured && sb) {
     const { error } = await sb.from('expenses').delete().eq('id', id);
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(friendlyError(error));
     emit();
     return;
   }

@@ -19,6 +19,7 @@ import {
 import Icon from '../../components/Icon.jsx';
 import VehicleIcon from '../../components/VehicleIcon.jsx';
 import { Avatar, EmptyState, Spinner, StatCard, SyncDot } from '../../components/ui.jsx';
+import friendlyError from '../../lib/friendlyError.js';
 import { downloadCSV } from '../../lib/csv.js';
 import { buildReportModel } from '../../lib/exporters/reportModel.js';
 import { generateReportPDF } from '../../lib/exporters/pdf.js';
@@ -144,7 +145,7 @@ export default function AdminReports() {
       else if (kind === 'word') await generateReportDOCX(model);
       setExportNote(`${kind === 'pdf' ? 'PDF' : 'Word'} report downloaded`);
     } catch (e) {
-      setExportNote(`Export failed: ${e?.message || 'unknown error'}`);
+      setExportNote(friendlyError(e, 'We could not create the file. Please try again.'));
     } finally {
       setExporting(null);
       setTimeout(() => setExportNote(''), 4000);
@@ -212,7 +213,8 @@ export default function AdminReports() {
       {pendingCount > 0 && (
         <div className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 ring-1 ring-amber-200">
           <Icon name="alert" className="h-4 w-4 shrink-0" />
-          {pendingCount} ticket(s) issued offline are still syncing — figures update automatically.
+          {pendingCount} ticket(s) issued offline haven't been sent yet — figures will update
+          automatically when you're back online.
         </div>
       )}
 
@@ -481,7 +483,7 @@ function Ledger({ tickets, profiles, range, staffId, online }) {
 
   const exportCsv = () => {
     const rows = [
-      ['Ticket No', 'Vehicle', 'Night', 'Total (NGN)', 'Staff', 'Date', 'Time In', 'Synced'],
+      ['Ticket No', 'Vehicle', 'Night', 'Total (NGN)', 'Staff', 'Date', 'Time In', 'Sent'],
       ...filtered.map((t) => [
         t.ticketNo,
         t.vehicleLabel,
@@ -490,7 +492,7 @@ function Ledger({ tickets, profiles, range, staffId, online }) {
         nameOf(t.issuedBy) || t.issuedByName || '',
         dayKeyOf(t.issuedAt),
         fmtTime(t.issuedAt),
-        t.synced ? 'Yes' : 'Pending',
+        t.synced ? 'Yes' : 'Not yet',
       ]),
     ];
     downloadCSV(`newheroes-ticket-ledger-${lagosDateStr()}.csv`, rows);

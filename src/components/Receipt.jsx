@@ -204,7 +204,7 @@ export function ReceiptModal({ ticket, onClose }) {
           <Icon name="checkCircle" className="h-5 w-5" /> Ticket issued
         </span>
         {ticket.synced ? (
-          <span className="text-[11px] font-bold text-emerald-600">Synced ✓</span>
+          <span className="text-[11px] font-bold text-emerald-600">Saved online ✓</span>
         ) : (
           <span className="flex items-center gap-1 text-[11px] font-bold text-amber-600">
             <Icon name="clock" className="h-3.5 w-3.5" /> Saves when online

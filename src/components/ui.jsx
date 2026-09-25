@@ -185,7 +185,7 @@ export function ConfirmDialog({
 export function SyncDot({ synced }) {
   return (
     <span
-      title={synced ? 'Synced' : 'Waiting to sync'}
+      title={synced ? 'Saved online' : 'Waiting for internet'}
       className={cx('inline-block h-2 w-2 shrink-0 rounded-full', synced ? 'bg-emerald-500' : 'bg-amber-400')}
     />
   );

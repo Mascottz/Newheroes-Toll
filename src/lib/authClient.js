@@ -8,6 +8,7 @@ import storage from './safeStorage.js';
 import { ensureDemoData } from './demoData.js';
 import { USERS_KEY, CURRENT_USER_KEY } from './keys.js';
 import { uuid } from './util.js';
+import friendlyError from './friendlyError.js';
 
 export const authMode = isSupabaseConfigured ? 'supabase' : 'demo';
 
@@ -61,7 +62,7 @@ export async function loadProfileById(id) {
     return u ? demoToProfile(u) : null;
   }
   const { data, error } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error));
   if (data) {
     const p = mapProfileRow(data);
     profilesCache = [p, ...profilesCache.filter((x) => x.id !== p.id)];
@@ -83,17 +84,11 @@ export async function signIn(email, password) {
   }
 
   const { data, error } = await sb.auth.signInWithPassword({ email: e, password });
-  if (error) {
-    const msg =
-      error.message === 'Invalid login credentials'
-        ? 'Incorrect email or password'
-        : error.message;
-    throw new Error(msg);
-  }
+  if (error) throw new Error(friendlyError(error));
   const profile = await loadProfileById(data.user.id).catch(() => null);
   if (!profile) {
     await sb.auth.signOut();
-    throw new Error('No staff profile exists for this account yet. Ask your manager to complete setup.');
+    throw new Error('Your account is not fully set up yet. Please ask your manager to finish the setup.');
   }
   if (!profile.isActive) {
     await sb.auth.signOut();
@@ -131,17 +126,18 @@ export async function loadCurrentUser() {
 
 /* --------------------------- staff management (admin) -------------------- */
 
-function edgeHint(msg) {
-  if (/fetch|404|network|Failed/i.test(msg)) {
-    return `${msg} — the "manage-user" Edge Function may not be deployed yet (see docs/SUPABASE_SETUP.md).`;
-  }
-  return msg;
-}
-
 async function invokeManageUser(body) {
   const { data, error } = await sb.functions.invoke('manage-user', { body });
-  if (error) throw new Error(edgeHint(error.message || 'Edge function request failed'));
-  if (data?.error) throw new Error(data.error);
+  if (error) {
+    const raw = String(error.message || '');
+    if (/fetch|network|404|function|relay|deployed|not found|failed/i.test(raw)) {
+      throw new Error(
+        'Creating staff accounts needs a one-time setup on the online service. If this keeps failing, ask your technical support to complete the setup.'
+      );
+    }
+    throw new Error(friendlyError(error));
+  }
+  if (data?.error) throw new Error(friendlyError(data.error));
   return data;
 }
 
@@ -155,7 +151,7 @@ export async function listProfiles() {
     .from('profiles')
     .select('*')
     .order('created_at', { ascending: true });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error));
   const list = (data || []).map(mapProfileRow);
   profilesCache = list;
   return list;
@@ -198,7 +194,7 @@ export async function setStaffActive(profile, isActive) {
     return;
   }
   const { error } = await sb.from('profiles').update({ is_active: isActive }).eq('id', profile.id);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(friendlyError(error));
   // Best-effort auth-level ban (requires the edge function).
   try {
     await invokeManageUser({ action: 'set_active', userId: profile.id, isActive });

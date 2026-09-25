@@ -211,8 +211,9 @@ export default function StaffAdmin() {
 
       {authMode === 'supabase' && (
         <p className="px-1 text-[11px] leading-relaxed text-slate-400">
-          New accounts are created through the <b>manage-user</b> Edge Function (admin-only).
-          If creation fails, make sure it's deployed — see <b>docs/SUPABASE_SETUP.md</b>.
+          New staff sign in with the email and password you set here. If creating an
+          account keeps failing, the online service may need a one-time setup — ask
+          your technical support for help.
         </p>
       )}
 

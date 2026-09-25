@@ -19,14 +19,14 @@ export function StatusBadges() {
       )}
       {online && pendingCount > 0 && (
         <Badge tone="amber">
-          <Icon name="clock" className="h-3 w-3" /> {pendingCount} pending
+          <Icon name="clock" className="h-3 w-3" /> {pendingCount} to send
         </Badge>
       )}
     </span>
   );
 }
 
-/** Manual "sync now" button with spinner while syncing. */
+/** Manual refresh button with a spinner while refreshing. */
 export function SyncButton() {
   const { syncing, refreshAll } = useTickets();
   return (
@@ -34,8 +34,8 @@ export function SyncButton() {
       type="button"
       onClick={() => refreshAll()}
       className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-brand-600"
-      aria-label="Sync now"
-      title="Sync now"
+      aria-label="Refresh now"
+      title="Refresh now"
     >
       {syncing ? <Spinner className="h-5 w-5 text-brand-500" /> : <Icon name="refresh" />}
     </button>

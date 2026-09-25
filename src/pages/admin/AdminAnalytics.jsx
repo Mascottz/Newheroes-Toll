@@ -37,6 +37,7 @@ import Icon from '../../components/Icon.jsx';
 import VehicleIcon from '../../components/VehicleIcon.jsx';
 import { EmptyState, Spinner } from '../../components/ui.jsx';
 import { cx, pct } from '../../lib/util.js';
+import friendlyError from '../../lib/friendlyError.js';
 import { buildReportModel } from '../../lib/exporters/reportModel.js';
 import { generateReportPDF } from '../../lib/exporters/pdf.js';
 import { generateReportDOCX } from '../../lib/exporters/docx.js';
@@ -255,7 +256,7 @@ export default function AdminAnalytics() {
       else await generateReportDOCX(model);
       setExportNote(`${kind === 'pdf' ? 'PDF' : 'Word'} report downloaded`);
     } catch (e) {
-      setExportNote(`Export failed: ${e?.message || 'unknown error'}`);
+      setExportNote(friendlyError(e, 'We could not create the file. Please try again.'));
     } finally {
       setExporting(null);
       setTimeout(() => setExportNote(''), 4000);
@@ -282,7 +283,7 @@ export default function AdminAnalytics() {
           </span>
           {online && pendingCount > 0 && (
             <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-600 ring-1 ring-amber-200">
-              {pendingCount} syncing
+              {pendingCount} sending
             </span>
           )}
           <button
@@ -608,8 +609,8 @@ export default function AdminAnalytics() {
 
       {!online && (
         <p className="flex items-center justify-center gap-1.5 text-center text-[11px] font-semibold text-amber-600">
-          <Icon name="wifiOff" className="h-3.5 w-3.5" /> Offline — showing data cached on this
-          device; everything syncs when you reconnect.
+          <Icon name="wifiOff" className="h-3.5 w-3.5" /> Offline — showing what's saved on this
+          device. Everything updates when you're back online.
         </p>
       )}
     </div>

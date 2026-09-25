@@ -66,7 +66,7 @@ export default function IssueTicket() {
         </div>
         {pendingCount > 0 && (
           <span className="flex items-center gap-1 rounded-full bg-amber-400/90 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-amber-950">
-            <Icon name="clock" className="h-3 w-3" /> {pendingCount} to sync
+            <Icon name="clock" className="h-3 w-3" /> {pendingCount} not sent yet
           </span>
         )}
       </div>
@@ -192,7 +192,8 @@ export default function IssueTicket() {
           </button>
           {!online && (
             <p className="pointer-events-none mt-1.5 text-center text-[11px] font-semibold text-amber-600">
-              Offline — tickets are saved on this device and sync automatically
+              Offline — tickets are saved on this device and will be sent automatically
+              when you're back online
             </p>
           )}
         </div>
